@@ -7,6 +7,7 @@
 
 import UIKit
 import Foundation
+import CoreData
 
 class MyScannedItem: Codable, Equatable {
     var id: String
@@ -110,6 +111,26 @@ class ViewController: UIViewController, ScanningViewControllerDelegate {
                     return newItem
                 }
             }
+            let appDelegate = UIApplication.shared.delegate as! AppDelegate
+            let context = appDelegate.persistentContainer.viewContext
+
+            let entity = NSEntityDescription.entity(forEntityName: "ScannedItemEntity", in: context)!
+            let newRecord = NSManagedObject(entity: entity, insertInto: context)
+
+            // Set the properties
+            newRecord.setValue(myScannedItem.id, forKey: "id")
+            newRecord.setValue(myScannedItem.name, forKey: "name")
+            newRecord.setValue(myScannedItem.imageBase64, forKey: "imageBase64")
+            newRecord.setValue(myScannedItem.bestbefore, forKey: "bestbefore")
+            newRecord.setValue(myScannedItem.scandate, forKey: "scandate")
+
+            do {
+               try context.save()
+            } catch {
+               print("Failed saving")
+            }
+
+
             
             // Save the updated scannedItems dictionary to local storage
             saveLocallyStoredItems(scannedItems)
@@ -192,7 +213,6 @@ extension ViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            
             // Get the scanId of the section where deletion is happening
             let scanId = Array(scannedItems.keys)[indexPath.section]
             
@@ -204,10 +224,8 @@ extension ViewController: UITableViewDataSource {
             
             // Iterate through all scanIDs in scannedItems
             for (scanId, array) in scannedItems {
-                
                 // Obtain the index of the item with matching itemIdToRemove in the array
                 if let index = array.firstIndex(where: { element in element.id == itemIdToRemove }) {
-                   
                     // Remove the item from the array
                     scannedItems[scanId]?.remove(at: index)
                     
@@ -218,6 +236,28 @@ extension ViewController: UITableViewDataSource {
                 }
             }
             
+            let appDelegate = UIApplication.shared.delegate as! AppDelegate
+            let context = appDelegate.persistentContainer.viewContext
+            
+            // Fetch the NSManagedObject to be deleted
+            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "ScannedItemEntity")
+            fetchRequest.predicate = NSPredicate(format: "id == %@", itemIdToRemove)
+            
+            do {
+                let fetchResult = try context.fetch(fetchRequest)
+                if let objectToDelete = fetchResult.first as? NSManagedObject {
+                    // Delete the object from the context
+                    context.delete(objectToDelete)
+                    
+                    // Save the changes to the context
+                    try context.save()
+                    
+                    print("deleted from coredata")
+                }
+            } catch {
+                print("Failed deleting: \(error)")
+            }
+            
             // Delete the row from the table view
             tableView.deleteRows(at: [indexPath], with: .fade)
             
@@ -225,6 +265,7 @@ extension ViewController: UITableViewDataSource {
             saveLocallyStoredItems(scannedItems)
         }
     }
+
 
 
 
