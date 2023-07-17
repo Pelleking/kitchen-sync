@@ -5,6 +5,7 @@
 //  Created by Pelle Fredrikson on 2023-05-30.
 //
 import UIKit
+import CoreData
 import AVFoundation
 import Firebase
 import Foundation
@@ -18,6 +19,8 @@ extension ScanningViewControllerDelegate where Self: UIViewController {
         set { fatalError("Setting delegate is not supported") }
     }
 }
+
+
 
 class ScanningViewController: UIViewController, AVCaptureMetadataOutputObjectsDelegate {
 
@@ -100,7 +103,7 @@ class ScanningViewController: UIViewController, AVCaptureMetadataOutputObjectsDe
                 barcodeScanned = true
 
             let ref = Database.database(url:"https://kitchen-sync-1-5c7b4-default-rtdb.europe-west1.firebasedatabase.app").reference().child("products").child("\(barcodeValue)")
-            ref.observeSingleEvent(of: .value) { snapshot in
+                ref.observeSingleEvent(of: .value) { snapshot  in
                 guard let value = snapshot.value as? [String: Any],
                       let name = value["name"] as? String,
                       let category = value["category"] as? String,
@@ -124,10 +127,27 @@ class ScanningViewController: UIViewController, AVCaptureMetadataOutputObjectsDe
                 }
                 
                 print("Product name - \(name) - bestbefore \(bestbefore) - category \(category)")
-
+                
                 let scannedItem = ScannedItem(id: barcodeValue, name: name, category: category, bestbefore: bestbefore)
                 self.delegate?.didScanItem(scannedItem)
 
+                
+                let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+                let newScannedItem = ScannedItem(context: context)
+                
+                newScannedItem.id = scannedItem.id
+                newScannedItem.name = scannedItem.name
+                newScannedItem.imageBase64 = scannedItem.image?.toBase64()
+                newScannedItem.bestbefore = scannedItem.bestbefore
+                newScannedItem.scandate = scannedItem.scandate
+                
+                do {
+                 try context.save()
+                } catch let error as NSError {
+                    print("Could not save. \(error), \(error.userInfo)")
+                }
+
+                
                 // Set scanningEnabled to false to prevent rapid scanning
                 //self.scanningEnabled = false
                 self.captureSession.stopRunning() // Stop the camera feed
