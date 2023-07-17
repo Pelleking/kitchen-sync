@@ -25,6 +25,7 @@ extension ScanningViewControllerDelegate where Self: UIViewController {
 class ScanningViewController: UIViewController, AVCaptureMetadataOutputObjectsDelegate {
 
 
+    
     weak var delegate: ScanningViewControllerDelegate?
     var captureSession: AVCaptureSession!
     var previewLayer: AVCaptureVideoPreviewLayer!
@@ -130,22 +131,6 @@ class ScanningViewController: UIViewController, AVCaptureMetadataOutputObjectsDe
                 
                 let scannedItem = ScannedItem(id: barcodeValue, name: name, category: category, bestbefore: bestbefore)
                 self.delegate?.didScanItem(scannedItem)
-
-                
-                let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-                let newScannedItem = ScannedItem(context: context)
-                
-                newScannedItem.id = scannedItem.id
-                newScannedItem.name = scannedItem.name
-                newScannedItem.imageBase64 = scannedItem.image?.toBase64()
-                newScannedItem.bestbefore = scannedItem.bestbefore
-                newScannedItem.scandate = scannedItem.scandate
-                
-                do {
-                 try context.save()
-                } catch let error as NSError {
-                    print("Could not save. \(error), \(error.userInfo)")
-                }
 
                 
                 // Set scanningEnabled to false to prevent rapid scanning
