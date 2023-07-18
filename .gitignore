@@ -7,3 +7,5 @@ DerivedData/
 .swiftpm/config/registries.json
 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
 .netrc
+kitchen sync/.build/repositories/PopupDialog-7d130561/objects/pack/pack-682ccc3ae90d7c25f04e71a33682d22fc1f6f4c5.pack
+kitchen sync/.build/repositories/firebase-ios-sdk-a1569f98/objects/pack/pack-0a196c57b3beab5ee2cbe2703cd3343f0ad94f64.pack
