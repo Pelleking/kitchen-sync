@@ -78,7 +78,7 @@
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="filled" title="Stats"/>
                                 <connections>
-                                    <segue destination="UlR-1d-iMb" kind="show" id="tUO-Wt-BEE"/>
+                                    <segue destination="Pcv-1l-oqq" kind="show" id="qDH-tD-K56"/>
                                 </connections>
                             </button>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Latest Scanns" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="duh-WX-6EM">
@@ -109,34 +109,6 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="yvA-dd-Pao" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="-3193.1297709923665" y="-361.26760563380282"/>
-        </scene>
-        <!--Stats Page-->
-        <scene sceneID="ClT-lj-x7a">
-            <objects>
-                <viewController id="UlR-1d-iMb" customClass="StatsPage" sceneMemberID="viewController">
-                    <view key="view" contentMode="scaleToFill" id="QxN-5x-O4n">
-                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="YxT-b3-cgT">
-                                <rect key="frame" x="130" y="125" width="132" height="31"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                        </subviews>
-                        <viewLayoutGuide key="safeArea" id="k7Q-0t-78S"/>
-                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
-                    </view>
-                    <navigationItem key="navigationItem" id="7iF-Lr-sJd"/>
-                    <connections>
-                        <outlet property="itemCountLabel" destination="YxT-b3-cgT" id="jcZ-9e-SiZ"/>
-                    </connections>
-                </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="iSC-5W-NI5" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="-1985.4961832061067" y="-351.40845070422534"/>
         </scene>
         <!--Adding New Item-->
         <scene sceneID="FTU-O1-3I6">
@@ -242,6 +214,34 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="oz5-IP-yqd" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="-3225.1908396946565" y="-1021.1267605633803"/>
+        </scene>
+        <!--Stats Page-->
+        <scene sceneID="Zqt-86-Ceo">
+            <objects>
+                <viewController id="Pcv-1l-oqq" customClass="StatsPage" customModule="kitchen_sync" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="6CP-5o-cDd">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="UkM-MA-Sfb">
+                                <rect key="frame" x="62" y="103" width="268" height="34"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="DAq-HM-lfV"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="BIg-E8-0B4"/>
+                    <connections>
+                        <outlet property="itemCountLabelui" destination="UkM-MA-Sfb" id="bf0-IN-wgW"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="qD8-Bg-EeG" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-2325.9541984732823" y="-856.33802816901414"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="56Y-NY-RhY">
