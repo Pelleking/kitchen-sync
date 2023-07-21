@@ -76,23 +76,28 @@ class ViewController: UIViewController, ScanningViewControllerDelegate, NSFetche
         
 
         func setUpFetchedResultsController() {
-          let fetchRequest: NSFetchRequest<ScannedItemEntity> = ScannedItemEntity.fetchRequest()
-          let sortDescriptor = NSSortDescriptor(key: "yourSortKey", ascending: true)
-          fetchRequest.sortDescriptors = [sortDescriptor]
-
-          fetchedResultController = NSFetchedResultsController(
+            let appDelegate = UIApplication.shared.delegate as! AppDelegate
+            let context = appDelegate.persistentContainer.viewContext
+            let fetchRequest: NSFetchRequest<ScannedItemEntity> = ScannedItemEntity.fetchRequest()
+            let sortDescriptor = NSSortDescriptor(key: #keyPath(ScannedItemEntity.name), ascending: true)
+            fetchRequest.sortDescriptors = [sortDescriptor]
+            
+            fetchedResultController = NSFetchedResultsController(
                 fetchRequest: fetchRequest,
                 managedObjectContext: context,
                 sectionNameKeyPath: nil,
-                cacheName: nil)
-          fetchedResultController.delegate = self
-
-          do {
-            try fetchedResultController.performFetch()
-          } catch {
-            fatalError("Failed to fetch entities: \(error)")
-          }
+                cacheName: nil
+            )
+            
+            fetchedResultController.delegate = self
+            
+            do {
+                try fetchedResultController.performFetch()
+            } catch let error as NSError {
+                print("Could not fetch. \(error), \(error.userInfo)")
+            }
         }
+
 
     }
     
@@ -211,8 +216,8 @@ extension ViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
       let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
       let item = fetchedResultController.object(at: indexPath)
-      cell.textLabel?.text = "\(item.name) (\(item.id))"
-      cell.imageView?.image = item.image ?? loadImageOrWhiteSquare(named: "no-image", size: CGSize(width: 100, height: 100))
+        cell.textLabel?.text = "\(item.name) (\(item.id))"
+     // cell.imageView?.image = imageBase64 ?? loadImageOrWhiteSquare(named: "no-image", size: CGSize(width: 100, height: 100))
       return cell
     }
 
