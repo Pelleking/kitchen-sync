@@ -15,7 +15,7 @@ class AddingNewItem: UIViewController, UITextFieldDelegate {
     @IBOutlet weak var Itemiddisplay: UILabel!
     @IBOutlet weak var UICategorypicker: UIPickerView!
     
-    let data = ["Category", "tech", "grocceris"]
+    let data = ["Category", "tech", "grocceris", "cleaning"]
 
     override func viewDidLoad() {
         super.viewDidLoad()

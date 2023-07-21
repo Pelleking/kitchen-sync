@@ -12,13 +12,15 @@ import CoreData
 class MyScannedItem: Codable, Equatable {
     var id: String
     var name: String
+    var category: String
     var imageBase64: String
     var bestbefore: Date
     var scandate: Date
     
-    init(id: String, name: String, imageBase64: String, bestbefore: Date, scandate: Date) {
+    init(id: String, name: String, category: String, imageBase64: String, bestbefore: Date, scandate: Date) {
         self.id = id
         self.name = name
+        self.category = category
         self.imageBase64 = imageBase64
         self.bestbefore = bestbefore
         self.scandate = scandate
@@ -26,14 +28,15 @@ class MyScannedItem: Codable, Equatable {
         static func == (lhs: MyScannedItem, rhs: MyScannedItem) -> Bool {
             return lhs.id == rhs.id &&
                 lhs.name == rhs.name &&
+                lhs.category == rhs.category &&
                 lhs.bestbefore == rhs.bestbefore &&
                 lhs.scandate == rhs.scandate
     }
     
     
-    convenience init(name: String, imageBase64: String, bestbefore: Date, scandate: Date) {
+    convenience init(name: String, category: String, imageBase64: String, bestbefore: Date, scandate: Date) {
         let id = "\(name)-\(bestbefore.timeIntervalSince1970)-\(scandate.timeIntervalSince1970)"
-        self.init(id: id, name: name, imageBase64: imageBase64, bestbefore: bestbefore, scandate: scandate)
+        self.init(id: id, name: name, category: category, imageBase64: imageBase64, bestbefore: bestbefore, scandate: scandate)
     }
     
     var image: UIImage? {
@@ -93,7 +96,7 @@ class ViewController: UIViewController, ScanningViewControllerDelegate {
         let image = loadImageOrWhiteSquare(named: "\(item.name)-productimage", size: CGSize(width: 100, height: 100))
         if let imageData = image?.pngData() {
             let base64String = imageData.base64EncodedString()
-            let myScannedItem = MyScannedItem(id: id, name: item.name, imageBase64: base64String, bestbefore: bestbefore, scandate: Date())
+            let myScannedItem = MyScannedItem(id: id, name: item.name, category: item.category, imageBase64: base64String, bestbefore: bestbefore, scandate: Date())
             
             // Add the new MyScannedItem to the array of items for the current scan ID, or create a new scan ID if it doesn't exist
             if var itemsForScan = scannedItems[scanID ?? ""] {
@@ -119,6 +122,7 @@ class ViewController: UIViewController, ScanningViewControllerDelegate {
 
             // Set the properties
             newRecord.setValue(myScannedItem.id, forKey: "id")
+            newRecord.setValue(myScannedItem.category, forKey: "category")
             newRecord.setValue(myScannedItem.name, forKey: "name")
             newRecord.setValue(myScannedItem.imageBase64, forKey: "imageBase64")
             newRecord.setValue(myScannedItem.bestbefore, forKey: "bestbefore")

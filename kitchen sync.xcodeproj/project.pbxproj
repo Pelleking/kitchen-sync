@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		DA0421CD2A67DEF2000A46DB /* ItemsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0421CC2A67DEF2000A46DB /* ItemsViewController.swift */; };
+		DA0421CF2A6808B1000A46DB /* CustomCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0421CE2A6808B1000A46DB /* CustomCollectionViewCell.swift */; };
 		DA2188202A2BEED900461DE1 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = DA21881F2A2BEED900461DE1 /* FirebaseAuth */; };
 		DA2188222A2BEED900461DE1 /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = DA2188212A2BEED900461DE1 /* FirebaseDatabase */; };
 		DA4AC18C2A667ED70078CA15 /* StatsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA4AC18B2A667ED70078CA15 /* StatsPage.swift */; };
@@ -25,6 +27,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		DA0421CC2A67DEF2000A46DB /* ItemsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemsViewController.swift; sourceTree = "<group>"; };
+		DA0421CE2A6808B1000A46DB /* CustomCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomCollectionViewCell.swift; sourceTree = "<group>"; };
 		DA4AC18B2A667ED70078CA15 /* StatsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsPage.swift; sourceTree = "<group>"; };
 		DA5519F32A2A8FD0005509B7 /* ScanningNewItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanningNewItem.swift; sourceTree = "<group>"; };
 		DA5519F52A2A933D005509B7 /* ScannedItem.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScannedItem.swift; sourceTree = "<group>"; };
@@ -82,6 +86,8 @@
 				DA5519F32A2A8FD0005509B7 /* ScanningNewItem.swift */,
 				DA5519F72A2A9F75005509B7 /* AddingNewItem.swift */,
 				DA4AC18B2A667ED70078CA15 /* StatsPage.swift */,
+				DA0421CE2A6808B1000A46DB /* CustomCollectionViewCell.swift */,
+				DA0421CC2A67DEF2000A46DB /* ItemsViewController.swift */,
 				DAC3083E2A658B3C0086FC1E /* ScannedItemModel.xcdatamodeld */,
 				DAC7D1942A23AEED006056FD /* Main.storyboard */,
 				DAC7D1992A23AEEE006056FD /* LaunchScreen.storyboard */,
@@ -176,10 +182,12 @@
 				DA5519F62A2A933D005509B7 /* ScannedItem.swift in Sources */,
 				DAC7D18F2A23AEED006056FD /* AppDelegate.swift in Sources */,
 				DAC7D1912A23AEED006056FD /* SceneDelegate.swift in Sources */,
+				DA0421CD2A67DEF2000A46DB /* ItemsViewController.swift in Sources */,
 				DA5519F82A2A9F75005509B7 /* AddingNewItem.swift in Sources */,
 				DA4AC18C2A667ED70078CA15 /* StatsPage.swift in Sources */,
 				DA5519F42A2A8FD0005509B7 /* ScanningNewItem.swift in Sources */,
 				DA761BC22A264ABB00026F5B /* ScanningViewController.swift in Sources */,
+				DA0421CF2A6808B1000A46DB /* CustomCollectionViewCell.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
