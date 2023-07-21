@@ -48,7 +48,10 @@ class MyScannedItem: Codable, Equatable {
 }
 
 
-class ViewController: UIViewController, ScanningViewControllerDelegate {
+class ViewController: UIViewController, ScanningViewControllerDelegate, NSFetchedResultsControllerDelegate {
+    
+    var fetchedResultController: NSFetchedResultsController<ScannedItemEntity>!
+    
     var scannedItems: [String: [MyScannedItem]] = [:]
     var scanID: String?
     
@@ -68,15 +71,36 @@ class ViewController: UIViewController, ScanningViewControllerDelegate {
         
         
         //lisening for change in the core data
-        NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name: NSNotification.Name(rawValue: "reload"), object: nil)
+      //  NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name: NSNotification.Name(rawValue: "reload"), object: nil)
+
+        
+
+        func setUpFetchedResultsController() {
+          let fetchRequest: NSFetchRequest<ScannedItemEntity> = ScannedItemEntity.fetchRequest()
+          let sortDescriptor = NSSortDescriptor(key: "yourSortKey", ascending: true)
+          fetchRequest.sortDescriptors = [sortDescriptor]
+
+          fetchedResultController = NSFetchedResultsController(
+                fetchRequest: fetchRequest,
+                managedObjectContext: context,
+                sectionNameKeyPath: nil,
+                cacheName: nil)
+          fetchedResultController.delegate = self
+
+          do {
+            try fetchedResultController.performFetch()
+          } catch {
+            fatalError("Failed to fetch entities: \(error)")
+          }
+        }
 
     }
     
-    
+    /*
     @objc func reloadData() {
         print("reloadin data in view controller")
         self.tableView.reloadData()
-    }
+    }*/
 
     func loadImageOrWhiteSquare(named name: String, size: CGSize) -> UIImage? {
         if let image = UIImage(named: name) {
@@ -169,32 +193,30 @@ class ViewController: UIViewController, ScanningViewControllerDelegate {
 }
 
 extension ViewController: UITableViewDataSource {
-    func numberOfSections(in tableView: UITableView) -> Int {
-        // Return the number of scan IDs in the scannedItems dictionary
-        return scannedItems.keys.count
-    }
-    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+      guard let sections = self.fetchedResultController.sections else {
+            fatalError("No sections in fetchedResultsController")
+      }
+      let sectionInfo = sections[section]
+      return sectionInfo.numberOfObjects
+    }
+
+    
+  /*  func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // Return the number of items for the current scan ID
         let scanID = scannedItems.keys.sorted()[section]
         return scannedItems[scanID]?.count ?? 0
-    }
+    }*/
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        
-        // Get the current scan ID and MyScannedItem for the current index path
-        let scanID = scannedItems.keys.sorted()[indexPath.section]
-        guard let item = scannedItems[scanID]?[indexPath.row] else {
-            return cell
-        }
-        
-        // Configure the cell with the MyScannedItem data
-        cell.textLabel?.text = "\(item.name) (\(item.id))"
-        cell.imageView?.image = item.image ?? loadImageOrWhiteSquare(named: "no-image", size: CGSize(width: 100, height: 100))
-        
-        return cell
+      let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+      let item = fetchedResultController.object(at: indexPath)
+      cell.textLabel?.text = "\(item.name) (\(item.id))"
+      cell.imageView?.image = item.image ?? loadImageOrWhiteSquare(named: "no-image", size: CGSize(width: 100, height: 100))
+      return cell
     }
+
+        
     /*
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
