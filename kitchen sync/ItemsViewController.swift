@@ -9,11 +9,13 @@ import Foundation
 import UIKit
 import CoreData
 
-class ItemsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+class ItemsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, ItemDetailViewControllerDelegate {
     
     @IBOutlet weak var tableView: UITableView!
     
     var items: [ScannedItemEntity] = []
+    var context: NSManagedObjectContext?
+
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -37,8 +39,51 @@ class ItemsViewController: UIViewController, UITableViewDataSource, UITableViewD
     // MARK: - TableView Delegate Methods
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        // Perform segue to item detail view or directly allow editing / deletion
+            let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
+            let itemDetailVC = storyBoard.instantiateViewController(withIdentifier: "ItemDetailViewController") as! ItemDetailViewController
+            let item = items[indexPath.row]
+            
+            itemDetailVC.id = item.value(forKey: "id") as? String
+            itemDetailVC.name = item.value(forKey: "name") as? String
+            itemDetailVC.category = item.value(forKey: "category") as? String
+            itemDetailVC.bestBeforeDate = item.value(forKey: "bestbefore") as? Date
+        
+            // Set the selectedIndexPath property
+            itemDetailVC.selectedIndexPath = indexPath
+        
+            // Set the delegate to self
+            itemDetailVC.delegate = self
+
+            itemDetailVC.modalPresentationStyle = .overCurrentContext
+            self.present(itemDetailVC, animated: true, completion: nil)
+        }
+    
+    // MARK: - ItemDetailViewControllerDelegate
+    
+    func didDeleteItem() {
+        fetchData()
     }
     
+    // MARK: - Fetch Data and Reload
     
+    func fetchData() {
+        func fetchData() {
+            guard let context = context else {
+                print("Context is nil")
+                return
+            }
+            
+            let fetchRequest: NSFetchRequest<ScannedItemEntity> = ScannedItemEntity.fetchRequest()
+            
+            do {
+                items = try context.fetch(fetchRequest)
+                tableView.reloadData() // Reload the table view data
+            } catch {
+                print("Error fetching data: \(error)")
+            }
+        }
+    }
 }
+
+    
+    

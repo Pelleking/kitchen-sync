@@ -17,6 +17,7 @@
 		DA5519F82A2A9F75005509B7 /* AddingNewItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA5519F72A2A9F75005509B7 /* AddingNewItem.swift */; };
 		DA761BC22A264ABB00026F5B /* ScanningViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA761BC12A264ABB00026F5B /* ScanningViewController.swift */; };
 		DAB809B72A24EEE600E10E4C /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = DAB809B62A24EEE600E10E4C /* GoogleService-Info.plist */; };
+		DAB87D102A6A8122002099FA /* ItemDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAB87D0F2A6A8122002099FA /* ItemDetailViewController.swift */; };
 		DAC308402A658B3C0086FC1E /* ScannedItemModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = DAC3083E2A658B3C0086FC1E /* ScannedItemModel.xcdatamodeld */; };
 		DAC7D18F2A23AEED006056FD /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAC7D18E2A23AEED006056FD /* AppDelegate.swift */; };
 		DAC7D1912A23AEED006056FD /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAC7D1902A23AEED006056FD /* SceneDelegate.swift */; };
@@ -35,6 +36,7 @@
 		DA5519F72A2A9F75005509B7 /* AddingNewItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddingNewItem.swift; sourceTree = "<group>"; };
 		DA761BC12A264ABB00026F5B /* ScanningViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanningViewController.swift; sourceTree = "<group>"; };
 		DAB809B62A24EEE600E10E4C /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../../Downloads/GoogleService-Info.plist"; sourceTree = "<group>"; };
+		DAB87D0F2A6A8122002099FA /* ItemDetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemDetailViewController.swift; sourceTree = "<group>"; };
 		DAC3083F2A658B3C0086FC1E /* ScannedItemModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = ScannedItemModel.xcdatamodel; sourceTree = "<group>"; };
 		DAC7D18B2A23AEED006056FD /* kitchen sync.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "kitchen sync.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		DAC7D18E2A23AEED006056FD /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -88,6 +90,7 @@
 				DA4AC18B2A667ED70078CA15 /* StatsPage.swift */,
 				DA0421CE2A6808B1000A46DB /* CustomCollectionViewCell.swift */,
 				DA0421CC2A67DEF2000A46DB /* ItemsViewController.swift */,
+				DAB87D0F2A6A8122002099FA /* ItemDetailViewController.swift */,
 				DAC3083E2A658B3C0086FC1E /* ScannedItemModel.xcdatamodeld */,
 				DAC7D1942A23AEED006056FD /* Main.storyboard */,
 				DAC7D1992A23AEEE006056FD /* LaunchScreen.storyboard */,
@@ -179,6 +182,7 @@
 			files = (
 				DAC7D1932A23AEED006056FD /* ViewController.swift in Sources */,
 				DAC308402A658B3C0086FC1E /* ScannedItemModel.xcdatamodeld in Sources */,
+				DAB87D102A6A8122002099FA /* ItemDetailViewController.swift in Sources */,
 				DA5519F62A2A933D005509B7 /* ScannedItem.swift in Sources */,
 				DAC7D18F2A23AEED006056FD /* AppDelegate.swift in Sources */,
 				DAC7D1912A23AEED006056FD /* SceneDelegate.swift in Sources */,

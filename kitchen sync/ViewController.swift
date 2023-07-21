@@ -270,6 +270,52 @@ extension ViewController: UITableViewDataSource {
         }
     }
 
+    func deleteItem(/*at indexPath: IndexPath,*/scanId: String) {
+            
+        // Iterate through all scanIDs in scannedItems
+        for (scanIdInDict, array) in scannedItems {
+            // Obtain the index of the item with matching scanId in the array
+            if let index = array.firstIndex(where: { element in element.id == scanId }) {
+                // Remove the item from the array
+                scannedItems[scanIdInDict]?.remove(at: index)
+                
+                // If the array is empty, remove the scanId from scannedItems
+                if scannedItems[scanIdInDict]?.isEmpty == true {
+                    scannedItems.removeValue(forKey: scanIdInDict)
+                }
+            }
+        }
+            
+            let appDelegate = UIApplication.shared.delegate as! AppDelegate
+            let context = appDelegate.persistentContainer.viewContext
+            
+            // Fetch the NSManagedObject to be deleted
+            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "ScannedItemEntity")
+            fetchRequest.predicate = NSPredicate(format: "id == %@", scanId)
+            
+            do {
+                let fetchResult = try context.fetch(fetchRequest)
+                if let objectToDelete = fetchResult.first as? NSManagedObject {
+                    // Delete the object from the context
+                    context.delete(objectToDelete)
+                    
+                    // Save the changes to the context
+                    try context.save()
+                    
+                    print("deleted from coredata")
+                }
+            } catch {
+                print("Failed deleting: \(error)")
+            }
+            
+            // Delete the row from the table view
+            //tableView.deleteRows(at: [indexPath], with: .fade)
+        
+            // Save the updated scannedItems array to local storage
+            saveLocallyStoredItems(scannedItems)
+        
+        
+    }
 
 
 
