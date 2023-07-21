@@ -128,8 +128,12 @@ weak var delegate: ItemDetailViewControllerDelegate?
         
         // Notify the delegate that an item has been deleted
         delegate?.didDeleteItem()
+        
+        // post a notification
+        NotificationCenter.default.post(name: NSNotification.Name(rawValue: "reload"), object: nil)
                 
         self.dismiss(animated: true, completion: nil)
+        
             }
         
     

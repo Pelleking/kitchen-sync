@@ -65,7 +65,17 @@ class ViewController: UIViewController, ScanningViewControllerDelegate {
         let loadedItems = loadLocallyStoredItems()
         let convertedItems = loadedItems.map { key, value in (key, value) }
         scannedItems = Dictionary(uniqueKeysWithValues: convertedItems)
+        
+        
+        //lisening for change in the core data
+        NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name: NSNotification.Name(rawValue: "reload"), object: nil)
 
+    }
+    
+    
+    @objc func reloadData() {
+        print("reloadin data in view controller")
+        self.tableView.reloadData()
     }
 
     func loadImageOrWhiteSquare(named name: String, size: CGSize) -> UIImage? {

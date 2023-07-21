@@ -10,6 +10,7 @@ import UIKit
 import CoreData
 
 class ItemsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, ItemDetailViewControllerDelegate {
+
     
     @IBOutlet weak var tableView: UITableView!
     
@@ -22,6 +23,18 @@ class ItemsViewController: UIViewController, UITableViewDataSource, UITableViewD
         print("ItemsViewController loaded")
         tableView.dataSource = self
         tableView.delegate = self
+        
+        // listen for the notification
+        NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name: NSNotification.Name(rawValue: "reload"), object: nil)
+    }
+    
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+            tableView.reloadData()
+        }
+    
+    @objc func reloadData() {
+        print("reloadin data")
+        self.tableView.reloadData()
     }
     
     // MARK: - TableView Data Source Methods
