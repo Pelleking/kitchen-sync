@@ -50,8 +50,23 @@ class MyScannedItem: Codable, Equatable {
 
 class ViewController: UIViewController, ScanningViewControllerDelegate, NSFetchedResultsControllerDelegate {
     
-    var fetchedResultController: NSFetchedResultsController<ScannedItemEntity>!
-    
+    var fetchedResultsController: NSFetchedResultsController<ScannedItemEntity>!
+
+    func setupFetchedResultsController() {
+        let fetchRequest: NSFetchRequest<ScannedItemEntity> = ScannedItemEntity.fetchRequest()
+        let sortDescriptor = NSSortDescriptor(key: "name", ascending: false)
+        fetchRequest.sortDescriptors = [sortDescriptor]
+
+        fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
+        fetchedResultsController.delegate = self
+
+        do {
+            try fetchedResultsController.performFetch()
+        } catch {
+            print("Fetch Failed: \(error)")
+        }
+    }
+
     var scannedItems: [String: [MyScannedItem]] = [:]
     var scanID: String?
     
@@ -59,9 +74,10 @@ class ViewController: UIViewController, ScanningViewControllerDelegate, NSFetche
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupFetchedResultsController()
 
         tableView.dataSource = self
-        //tableView.delegate = self
+       // tableView.delegate = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
 
         // Load the locally stored data into the scannedItems dictionary
@@ -173,7 +189,7 @@ class ViewController: UIViewController, ScanningViewControllerDelegate, NSFetche
                print("Failed saving")
             }
 
-
+         
             
             // Save the updated scannedItems dictionary to local storage
           //  saveLocallyStoredItems(scannedItems)
@@ -195,71 +211,31 @@ class ViewController: UIViewController, ScanningViewControllerDelegate, NSFetche
     @IBAction func showScannerButtonTapped(_ sender: UIButton) {
         showScanner()
     }
+    
+
+
 }
 
 extension ViewController: UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSectionone section: Int) -> Int {
-        guard let sections = self.fetchedResultController.sections else {
-            fatalError("No sections in fetchedResultsController")
-      }
-      let sectionInfo = sections[section]
-      return sectionInfo.numberOfObjects
-    }
+    
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        let scanIDs = scannedItems.keys.sorted()
-        guard section < scanIDs.count, let items = scannedItems[scanIDs[section]] else {
-            return 0
-        }
-        return items.count
+        guard let sections = fetchedResultsController.sections else { return 0 }
+        let sectionInfo = sections[section]
+        return sectionInfo.numberOfObjects
     }
 
-
-    
-  /*  func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        // Return the number of items for the current scan ID
-        let scanID = scannedItems.keys.sorted()[section]
-        return scannedItems[scanID]?.count ?? 0
-    }*/
-    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-      let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-      let item = fetchedResultController.object(at: indexPath)
-        cell.textLabel?.text = "\(String(describing: item.name)) (\(String(describing: item.id)))"
-     // cell.imageView?.image = imageBase64 ?? loadImageOrWhiteSquare(named: "no-image", size: CGSize(width: 100, height: 100))
-      return cell
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+        let item = fetchedResultsController.object(at: indexPath)
+        cell.setup(with: item)
+        return cell
     }
 
-        
-    /*
-    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            // Remove the item from the array of items
-            let scanID = Array(scannedItems.keys)[indexPath.section]
-            let itemToRemove = scannedItems[scanID]?[indexPath.row]
-            if let name = itemToRemove?.name, let bestbefore = itemToRemove?.bestbefore {
-                scannedItems.removeAll { (item: (key: String, value: [MyScannedItem])) -> Bool in
-                    if let element = item.value.first(where: { element in
-                        element.name == name && element.bestbefore == bestbefore
-                    }) {
-                        if let index = item.value.firstIndex(of: element) {
-                            scannedItems[scanID]?.remove(at: index)
-                            return true
-                        }
-                    }
-                    return false
-                }
-            } // Add this closing brace to fix the error
-
-        } // Add this closing brace to fix the error
-
-        // Delete the row from the table view
-        tableView.deleteRows(at: [indexPath], with: .fade)
-
-        // Save the updated scannedItems array to local storage
-        saveLocallyStoredItems(scannedItems)
-    }
-*/
+    
+    
+    
+    
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
@@ -312,12 +288,12 @@ extension ViewController: UITableViewDataSource {
             tableView.deleteRows(at: [indexPath], with: .fade)
             
             // Save the updated scannedItems array to local storage
-           // saveLocallyStoredItems(scannedItems)
+            // saveLocallyStoredItems(scannedItems)
         }
     }
-
+    
     func deleteItem(/*at indexPath: IndexPath,*/scanId: String) {
-            
+        
         // Iterate through all scanIDs in scannedItems
         for (scanIdInDict, array) in scannedItems {
             // Obtain the index of the item with matching scanId in the array
@@ -331,41 +307,77 @@ extension ViewController: UITableViewDataSource {
                 }
             }
         }
-            
-            let appDelegate = UIApplication.shared.delegate as! AppDelegate
-            let context = appDelegate.persistentContainer.viewContext
-            
-            // Fetch the NSManagedObject to be deleted
-            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "ScannedItemEntity")
-            fetchRequest.predicate = NSPredicate(format: "id == %@", scanId)
-            
-            do {
-                let fetchResult = try context.fetch(fetchRequest)
-                if let objectToDelete = fetchResult.first as? NSManagedObject {
-                    // Delete the object from the context
-                    context.delete(objectToDelete)
-                    
-                    // Save the changes to the context
-                    try context.save()
-                    
-                    print("deleted from coredata")
-                }
-            } catch {
-                print("Failed deleting: \(error)")
+        
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        let context = appDelegate.persistentContainer.viewContext
+        
+        // Fetch the NSManagedObject to be deleted
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "ScannedItemEntity")
+        fetchRequest.predicate = NSPredicate(format: "id == %@", scanId)
+        
+        do {
+            let fetchResult = try context.fetch(fetchRequest)
+            if let objectToDelete = fetchResult.first as? NSManagedObject {
+                // Delete the object from the context
+                context.delete(objectToDelete)
+                
+                // Save the changes to the context
+                try context.save()
+                
+                print("deleted from coredata")
             }
-            
-            // Delete the row from the table view
-            //tableView.deleteRows(at: [indexPath], with: .fade)
+        } catch {
+            print("Failed deleting: \(error)")
+        }
         
-            // Save the updated scannedItems array to local storage
-            //saveLocallyStoredItems(scannedItems)
+        // Delete the row from the table view
+        //tableView.deleteRows(at: [indexPath], with: .fade)
+        
+        // Save the updated scannedItems array to local storage
+        //saveLocallyStoredItems(scannedItems)
         
         
+    }
+}
+    extension ViewController: NSFetchedResultsControllerDelegate {
+
+        func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+            tableView.beginUpdates()
+        }
+        
+        func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+            tableView.endUpdates()
+        }
+        
+        func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>,
+                                 didChange anObject: Any,
+                                 at indexPath: IndexPath?,
+                                 for type: NSFetchedResultsChangeType,
+                                 newIndexPath: IndexPath?) {
+
+            switch type {
+            case .insert:
+                guard let newIndexPath = newIndexPath else { return }
+                tableView.insertRows(at: [newIndexPath], with: .automatic)
+            case .delete:
+                guard let indexPath = indexPath else { return }
+                tableView.deleteRows(at: [indexPath], with: .automatic)
+            case .update:
+                guard let indexPath = indexPath else { return }
+                tableView.reloadRows(at: [indexPath], with: .automatic)
+            case .move:
+                guard let indexPath = indexPath, let newIndexPath = newIndexPath else { return }
+                tableView.moveRow(at: indexPath, to: newIndexPath)
+            @unknown default:
+              return
+            }
+        }
     }
 
 
 
-}
+
+
 /*
 extension ViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
