@@ -61,13 +61,13 @@ class ViewController: UIViewController, ScanningViewControllerDelegate, NSFetche
         super.viewDidLoad()
 
         tableView.dataSource = self
-        tableView.delegate = self
+        //tableView.delegate = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
 
         // Load the locally stored data into the scannedItems dictionary
-        let loadedItems = loadLocallyStoredItems()
-        let convertedItems = loadedItems.map { key, value in (key, value) }
-        scannedItems = Dictionary(uniqueKeysWithValues: convertedItems)
+     //   let loadedItems = loadLocallyStoredItems()
+      //  let convertedItems = loadedItems.map { key, value in (key, value) }
+       // scannedItems = Dictionary(uniqueKeysWithValues: convertedItems)
         
         
         //lisening for change in the core data
@@ -176,7 +176,7 @@ class ViewController: UIViewController, ScanningViewControllerDelegate, NSFetche
 
             
             // Save the updated scannedItems dictionary to local storage
-            saveLocallyStoredItems(scannedItems)
+          //  saveLocallyStoredItems(scannedItems)
             
             tableView.reloadData()
             dismiss(animated: true, completion: nil)
@@ -198,13 +198,22 @@ class ViewController: UIViewController, ScanningViewControllerDelegate, NSFetche
 }
 
 extension ViewController: UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-      guard let sections = self.fetchedResultController.sections else {
+    func tableView(_ tableView: UITableView, numberOfRowsInSectionone section: Int) -> Int {
+        guard let sections = self.fetchedResultController.sections else {
             fatalError("No sections in fetchedResultsController")
       }
       let sectionInfo = sections[section]
       return sectionInfo.numberOfObjects
     }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        let scanIDs = scannedItems.keys.sorted()
+        guard section < scanIDs.count, let items = scannedItems[scanIDs[section]] else {
+            return 0
+        }
+        return items.count
+    }
+
 
     
   /*  func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -216,7 +225,7 @@ extension ViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
       let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
       let item = fetchedResultController.object(at: indexPath)
-        cell.textLabel?.text = "\(item.name) (\(item.id))"
+        cell.textLabel?.text = "\(String(describing: item.name)) (\(String(describing: item.id)))"
      // cell.imageView?.image = imageBase64 ?? loadImageOrWhiteSquare(named: "no-image", size: CGSize(width: 100, height: 100))
       return cell
     }
@@ -303,7 +312,7 @@ extension ViewController: UITableViewDataSource {
             tableView.deleteRows(at: [indexPath], with: .fade)
             
             // Save the updated scannedItems array to local storage
-            saveLocallyStoredItems(scannedItems)
+           // saveLocallyStoredItems(scannedItems)
         }
     }
 
@@ -349,7 +358,7 @@ extension ViewController: UITableViewDataSource {
             //tableView.deleteRows(at: [indexPath], with: .fade)
         
             // Save the updated scannedItems array to local storage
-            saveLocallyStoredItems(scannedItems)
+            //saveLocallyStoredItems(scannedItems)
         
         
     }
@@ -357,7 +366,7 @@ extension ViewController: UITableViewDataSource {
 
 
 }
-
+/*
 extension ViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         // Return the current scan ID as the section header title
@@ -392,3 +401,4 @@ extension ViewController {
     }
 
 }
+*/
