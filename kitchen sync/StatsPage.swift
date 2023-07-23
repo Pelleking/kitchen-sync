@@ -7,28 +7,59 @@
 import Foundation
 import CoreData
 import UIKit
-
-class StatsPage: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
+class StatsPage: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, NSFetchedResultsControllerDelegate {
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     @IBOutlet weak var itemCountLabelui: UILabel!
     @IBOutlet weak var collectionView: UICollectionView!
 
     var categories: [String: [ScannedItemEntity]] = [:]
     var categoryNames: [String] = []
+    var fetchedResultsController: NSFetchedResultsController<ScannedItemEntity>!
     
-    func fetchItems() -> [ScannedItemEntity] {
+    
+    // MARK: - FetchRequest and FetchedResultsController Setup
+       
+    func setupFetchedResultsController() {
+           let fetchRequest: NSFetchRequest<ScannedItemEntity> = ScannedItemEntity.fetchRequest()
+           
+           // Sort the results based on your sorting requirements
+           fetchRequest.sortDescriptors = []
+           
+           fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest,
+                                                                 managedObjectContext: context,
+                                                                 sectionNameKeyPath: nil,
+                                                                 cacheName: nil)
+           fetchedResultsController.delegate = self
+    
+
+        
+           do {
+               try fetchedResultsController.performFetch()
+           } catch {
+               print("Error fetching data: \(error)")
+           }
+       }
+       // MARK: - NSFetchedResultsControllerDelegate methods
+       
+    
+    
+    
+    /*func fetchItems() -> [ScannedItemEntity] {
         let fetchRequest = NSFetchRequest<ScannedItemEntity>(entityName: "ScannedItemEntity")
         let items = try? context.fetch(fetchRequest)
         return items ?? []
-    }
+    }*/
     
-    //count all the items
+    // Count all the items
     func groupItemsByCount() -> [String: Int] {
-        let items = fetchItems()
+        guard let items = fetchedResultsController.fetchedObjects else {
+            return [:]
+        }
+        
         var itemCounts: [String: Int] = [:]
-  
+        
         for item in items {
-            if let name = item.name { // Safely unwrap name
+            if let name = item.name {
                 if let count = itemCounts[name] {
                     itemCounts[name] = count + 1
                 } else {
@@ -36,23 +67,26 @@ class StatsPage: UIViewController, UICollectionViewDataSource, UICollectionViewD
                 }
             }
         }
-  
+        
         return itemCounts
     }
-    
+
+    // Group items by category
     func groupItemsByCategory() {
-            let items = fetchItems()
-            for item in items {
-                let category = item.category ?? "Unknown Category"
-                if categories[category] != nil {
-                    categories[category]!.append(item)
-                } else {
-                    categories[category] = [item]
-                    categoryNames.append(category)
-                }
+        guard let items = fetchedResultsController.fetchedObjects else {
+            return
+        }
+        
+        for item in items {
+            let category = item.category ?? "Unknown Category"
+            if categories[category] != nil {
+                categories[category]!.append(item)
+            } else {
+                categories[category] = [item]
+                categoryNames.append(category)
             }
         }
-    
+    }
   
     //update label and category
     func updateLabel() {
@@ -67,6 +101,7 @@ class StatsPage: UIViewController, UICollectionViewDataSource, UICollectionViewD
   
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupFetchedResultsController()
         updateLabel()
         collectionView.dataSource = self
         collectionView.delegate = self
@@ -93,44 +128,20 @@ class StatsPage: UIViewController, UICollectionViewDataSource, UICollectionViewD
     }
     
     
-    // MARK: - Sizeing for each cell square
-    /*
-    private let itemsPerRow: CGFloat = 2 // Two items per row
-    private let sectionInsets = UIEdgeInsets(top: 5.0,
-                                             left: 5.0,
-                                             bottom: 5.0,
-                                             right: 5.0)
 
-    
-    func collectionView(_ collectionView: UICollectionView, 
-                        layout collectionViewLayout: UICollectionViewLayout,
-                        sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let paddingSpace = sectionInsets.left * (itemsPerRow + 1)
-        let availableWidth = view.frame.width - paddingSpace
-        let widthPerItem = availableWidth / itemsPerRow
-
-        return CGSize(width: widthPerItem, height: widthPerItem)
-    }
-
-    func collectionView(_ collectionView: UICollectionView,
-                        layout collectionViewLayout: UICollectionViewLayout,
-                        insetForSectionAt section: Int) -> UIEdgeInsets {
-        return sectionInsets
-    }
-
-    func collectionView(_ collectionView: UICollectionView,
-                        layout collectionViewLayout: UICollectionViewLayout,
-                        minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return sectionInsets.left
-    }
-*/
     
     // MARK: - Navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-       if segue.identifier == "showItems" {
-           prepareSegue(for: segue)
-       }
-   }
+        if segue.identifier == "showItems" {
+            let destinationVC = segue.destination as! ItemsViewController
+            if let indexPath = collectionView.indexPathsForSelectedItems?.first {
+                let selectedCategory = categoryNames[indexPath.row]
+                destinationVC.category = selectedCategory
+                destinationVC.items = categories[selectedCategory]!
+            }
+        }
+    }
+
 
     private func prepareSegue(for segue: UIStoryboardSegue) {
        let destinationVC = segue.destination as! ItemsViewController
@@ -139,10 +150,68 @@ class StatsPage: UIViewController, UICollectionViewDataSource, UICollectionViewD
        }
     }
 }
+extension StatsPage {
+    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        // Optionally update or prepare your UI for changes
+    }
+
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>,
+                    didChange anObject: Any,
+                    at indexPath: IndexPath?,
+                    for type: NSFetchedResultsChangeType,
+                    newIndexPath: IndexPath?) {
+        switch type {
+            case .insert, .delete, .update:
+                DispatchQueue.main.async {
+                    self.updateLabel()
+                    self.collectionView.reloadData()
+                }
+            default:
+                break
+        }
+    }
+
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+       // React to completed changes
+    }
+}
 
 
 
 
+
+
+// MARK: - Sizeing for each cell square
+/*
+private let itemsPerRow: CGFloat = 2 // Two items per row
+private let sectionInsets = UIEdgeInsets(top: 5.0,
+                                         left: 5.0,
+                                         bottom: 5.0,
+                                         right: 5.0)
+
+
+func collectionView(_ collectionView: UICollectionView,
+                    layout collectionViewLayout: UICollectionViewLayout,
+                    sizeForItemAt indexPath: IndexPath) -> CGSize {
+    let paddingSpace = sectionInsets.left * (itemsPerRow + 1)
+    let availableWidth = view.frame.width - paddingSpace
+    let widthPerItem = availableWidth / itemsPerRow
+
+    return CGSize(width: widthPerItem, height: widthPerItem)
+}
+
+func collectionView(_ collectionView: UICollectionView,
+                    layout collectionViewLayout: UICollectionViewLayout,
+                    insetForSectionAt section: Int) -> UIEdgeInsets {
+    return sectionInsets
+}
+
+func collectionView(_ collectionView: UICollectionView,
+                    layout collectionViewLayout: UICollectionViewLayout,
+                    minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+    return sectionInsets.left
+}
+*/
 
 
 

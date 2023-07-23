@@ -48,15 +48,20 @@ class MyScannedItem: Codable, Equatable {
 }
 
 
-class ViewController: UIViewController, ScanningViewControllerDelegate, NSFetchedResultsControllerDelegate {
+class ViewController: UIViewController, ScanningViewControllerDelegate {
+    var context: NSManagedObjectContext?
+
     
     var fetchedResultsController: NSFetchedResultsController<ScannedItemEntity>!
-
+    
     func setupFetchedResultsController() {
         let fetchRequest: NSFetchRequest<ScannedItemEntity> = ScannedItemEntity.fetchRequest()
         let sortDescriptor = NSSortDescriptor(key: "name", ascending: false)
         fetchRequest.sortDescriptors = [sortDescriptor]
-
+        
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        let context = appDelegate.persistentContainer.viewContext
+        
         fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
         fetchedResultsController.delegate = self
 
@@ -77,15 +82,9 @@ class ViewController: UIViewController, ScanningViewControllerDelegate, NSFetche
         setupFetchedResultsController()
 
         tableView.dataSource = self
-       // tableView.delegate = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
 
-        // Load the locally stored data into the scannedItems dictionary
-     //   let loadedItems = loadLocallyStoredItems()
-      //  let convertedItems = loadedItems.map { key, value in (key, value) }
-       // scannedItems = Dictionary(uniqueKeysWithValues: convertedItems)
-        
-        
+
         //lisening for change in the core data
       //  NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name: NSNotification.Name(rawValue: "reload"), object: nil)
 
@@ -98,17 +97,17 @@ class ViewController: UIViewController, ScanningViewControllerDelegate, NSFetche
             let sortDescriptor = NSSortDescriptor(key: #keyPath(ScannedItemEntity.name), ascending: true)
             fetchRequest.sortDescriptors = [sortDescriptor]
             
-            fetchedResultController = NSFetchedResultsController(
+            fetchedResultsController = NSFetchedResultsController(
                 fetchRequest: fetchRequest,
                 managedObjectContext: context,
                 sectionNameKeyPath: nil,
                 cacheName: nil
             )
             
-            fetchedResultController.delegate = self
+            fetchedResultsController.delegate = self
             
             do {
-                try fetchedResultController.performFetch()
+                try fetchedResultsController.performFetch()
             } catch let error as NSError {
                 print("Could not fetch. \(error), \(error.userInfo)")
             }
@@ -117,11 +116,6 @@ class ViewController: UIViewController, ScanningViewControllerDelegate, NSFetche
 
     }
     
-    /*
-    @objc func reloadData() {
-        print("reloadin data in view controller")
-        self.tableView.reloadData()
-    }*/
 
     func loadImageOrWhiteSquare(named name: String, size: CGSize) -> UIImage? {
         if let image = UIImage(named: name) {
@@ -228,7 +222,7 @@ extension ViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         let item = fetchedResultsController.object(at: indexPath)
-        cell.setup(with: item)
+        cell.textLabel?.text = item.name
         return cell
     }
 
@@ -236,30 +230,27 @@ extension ViewController: UITableViewDataSource {
     
     
     
-    
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             // Get the scanId of the section where deletion is happening
-            let scanId = Array(scannedItems.keys)[indexPath.section]
+            guard let scanId = scanID, var itemArr = scannedItems[scanId] else { return }
+            
+            // Check if array has enough items to avoid the 'Index out of range' error
+            guard indexPath.row < itemArr.count else { return }
             
             // Get the item to remove
-            guard let itemToRemove = scannedItems[scanId]?[indexPath.row] else { return }
+            let itemToRemove = itemArr[indexPath.row]
             
             // Get the id of the item to remove
             let itemIdToRemove = itemToRemove.id
             
-            // Iterate through all scanIDs in scannedItems
-            for (scanId, array) in scannedItems {
-                // Obtain the index of the item with matching itemIdToRemove in the array
-                if let index = array.firstIndex(where: { element in element.id == itemIdToRemove }) {
-                    // Remove the item from the array
-                    scannedItems[scanId]?.remove(at: index)
-                    
-                    // If the array is empty, remove the scanId from scannedItems
-                    if scannedItems[scanId]?.isEmpty == true {
-                        scannedItems.removeValue(forKey: scanId)
-                    }
-                }
+            // Remove the item from the array
+            itemArr.remove(at: indexPath.row)
+            scannedItems[scanId] = itemArr
+            
+            // If the array is empty, remove the scanId from scannedItems
+            if itemArr.isEmpty {
+                scannedItems.removeValue(forKey: scanId)
             }
             
             let appDelegate = UIApplication.shared.delegate as! AppDelegate
@@ -267,30 +258,27 @@ extension ViewController: UITableViewDataSource {
             
             // Fetch the NSManagedObject to be deleted
             let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "ScannedItemEntity")
-            fetchRequest.predicate = NSPredicate(format: "id == %@", itemIdToRemove)
+            fetchRequest.predicate = NSPredicate(format: "id == %@", itemIdToRemove)  // Use itemIdToRemove here
             
             do {
                 let fetchResult = try context.fetch(fetchRequest)
                 if let objectToDelete = fetchResult.first as? NSManagedObject {
-                    // Delete the object from the context
                     context.delete(objectToDelete)
-                    
-                    // Save the changes to the context
-                    try context.save()
-                    
-                    print("deleted from coredata")
+                    do {
+                        // Save the changes to the context
+                        try context.save()
+                        print("deleted from coredata")
+                    } catch {
+                        print("Failed saving after deletion: \(error)")
+                    }
                 }
             } catch {
                 print("Failed deleting: \(error)")
             }
-            
-            // Delete the row from the table view
-            tableView.deleteRows(at: [indexPath], with: .fade)
-            
-            // Save the updated scannedItems array to local storage
-            // saveLocallyStoredItems(scannedItems)
+
         }
     }
+
     
     func deleteItem(/*at indexPath: IndexPath,*/scanId: String) {
         
@@ -318,24 +306,25 @@ extension ViewController: UITableViewDataSource {
         do {
             let fetchResult = try context.fetch(fetchRequest)
             if let objectToDelete = fetchResult.first as? NSManagedObject {
-                // Delete the object from the context
                 context.delete(objectToDelete)
-                
-                // Save the changes to the context
-                try context.save()
-                
-                print("deleted from coredata")
+                do {
+                  // Save the changes to the context
+                  try context.save()
+                  print("deleted from coredata")
+                } catch {
+                  print("Failed saving after deletion: \(error)")
+                }
             }
         } catch {
             print("Failed deleting: \(error)")
         }
+
         
         // Delete the row from the table view
         //tableView.deleteRows(at: [indexPath], with: .fade)
         
         // Save the updated scannedItems array to local storage
         //saveLocallyStoredItems(scannedItems)
-        
         
     }
 }

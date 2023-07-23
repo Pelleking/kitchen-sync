@@ -9,12 +9,7 @@ import Foundation
 import UIKit
 import CoreData
 
-protocol ItemDetailViewControllerDelegate: AnyObject {
-    func didDeleteItem()
-}
-
-class ItemDetailViewController: UIViewController {
-weak var delegate: ItemDetailViewControllerDelegate?
+class ItemDetailViewController: UIViewController,NSFetchedResultsControllerDelegate {
 
 
     // UIview behind displayView
@@ -26,10 +21,17 @@ weak var delegate: ItemDetailViewControllerDelegate?
     var category: String?
     var bestBeforeDate: Date?
     
+    var fetchedResultsController: NSFetchedResultsController<ScannedItemEntity>?
+    
     var selectedIndexPath: IndexPath?
+    
+    var didTapDeleteButton: ((IndexPath?) -> Void)?
+
     
     // Create an instance of ViewController
     let viewController = ViewController()
+    
+    var context: NSManagedObjectContext?
     
     // Outlets for your labels
     @IBOutlet weak var idLabel: UILabel!
@@ -100,6 +102,32 @@ weak var delegate: ItemDetailViewControllerDelegate?
         }
     }
     
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        updateDetails()
+    }
+
+    //delete item function from ViewCOntroller
+    @objc func deleteButtonTapped() {
+        print("delete button pressed")
+        guard let id = idLabel.text else {
+            print("ID is nil")
+            return
+        }
+        
+        viewController.deleteItem(scanId: id)
+        
+        // post a notification
+        NotificationCenter.default.post(name: NSNotification.Name(rawValue: "reload"), object: nil)
+                
+        self.dismiss(animated: true, completion: nil)
+        
+            }
+        
+   }
+
+
+    
+    
     /*
     @IBAction func deleteButtonTapped(_ sender: UIButton) {
         guard let id = idLabel.text else {
@@ -116,26 +144,4 @@ weak var delegate: ItemDetailViewControllerDelegate?
      */
      
      
-    //delete item function from ViewCOntroller
-    @objc func deleteButtonTapped() {
-        print("delete button pressed")
-        guard let id = idLabel.text else {
-            print("ID is nil")
-            return
-        }
-        
-        viewController.deleteItem(scanId: id)
-        
-        // Notify the delegate that an item has been deleted
-        delegate?.didDeleteItem()
-        
-        // post a notification
-        NotificationCenter.default.post(name: NSNotification.Name(rawValue: "reload"), object: nil)
-                
-        self.dismiss(animated: true, completion: nil)
-        
-            }
-        
-    
-        
-   }
+
