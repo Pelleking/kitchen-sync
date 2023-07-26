@@ -75,7 +75,12 @@ class ViewController: UIViewController, ScanningViewControllerDelegate {
     var scannedItems: [String: [MyScannedItem]] = [:]
     var scanID: String?
     
+    
     @IBOutlet weak var tableView: UITableView!
+    
+    //hamburgermenu button
+    var transparentButton: UIButton?
+    var tapGesture: UITapGestureRecognizer?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -88,8 +93,13 @@ class ViewController: UIViewController, ScanningViewControllerDelegate {
         //lisening for change in the core data
       //  NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name: NSNotification.Name(rawValue: "reload"), object: nil)
 
+        //hamburgermenu
+        // Set up gesture recognizers
+            setupGestureRecognizers()
         
 
+        
+        
         func setUpFetchedResultsController() {
             let appDelegate = UIApplication.shared.delegate as! AppDelegate
             let context = appDelegate.persistentContainer.viewContext
@@ -112,6 +122,103 @@ class ViewController: UIViewController, ScanningViewControllerDelegate {
                 print("Could not fetch. \(error), \(error.userInfo)")
             }
         }
+
+
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        setupGestureRecognizers()
+    }
+    
+    func setupGestureRecognizers() {
+        let recognizer = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipe(_:)))
+        recognizer.direction = .left
+        self.view.addGestureRecognizer(recognizer)
+
+        let swipeRightRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipeRight(_:)))
+        swipeRightRecognizer.direction = .right
+        self.view.addGestureRecognizer(swipeRightRecognizer)
+    }
+    
+    var isMenuOpen = false
+    
+    @objc func handleSwipe(_ recognizer: UISwipeGestureRecognizer) {
+        if recognizer.direction == .left, !isMenuOpen {
+            // Trigger menu opening
+            openMenu()
+        }
+    }
+
+    @objc func handleSwipeRight(_ recognizer: UISwipeGestureRecognizer) {
+        if recognizer.direction == .right, isMenuOpen {
+            // Trigger menu closing
+            closeMenu()
+        }
+    }
+
+    @objc func handleTapGesture(_ recognizer: UITapGestureRecognizer?) {
+        recognizer?.cancelsTouchesInView = false
+            let slideMenuView = children.last?.view
+            UIView.animate(withDuration: 0.3, animations: {
+               slideMenuView?.frame = CGRect(x: self.view.frame.width, y: 0, width: self.view.frame.width * 0.6, height: self.view.frame.height)
+            }) { _ in
+                self.children.last?.willMove(toParent: nil)
+                slideMenuView?.removeFromSuperview()
+                self.children.last?.removeFromParent()
+            }
+            
+        
+    }
+
+    func openMenu() {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        
+        guard let slideMenuVC = storyboard.instantiateViewController(withIdentifier: "SlideMenuViewController") as? SlideMenuViewController else {
+            print("Could not instantiate SlideMenuViewController")
+            return
+        }
+
+        /* Hide the SlideMenuViewController outside the visible area ready to be animated */
+        slideMenuVC.view.frame = CGRect(x: self.view.frame.width, y: 0, width: self.view.frame.width * 0.6, height: self.view.frame.height)
+        
+        view.addSubview(slideMenuVC.view)
+        addChild(slideMenuVC)
+        slideMenuVC.didMove(toParent: self)
+        
+        // Animate the side menu view to slide from right
+        UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0, options: .curveEaseInOut, animations: {
+            slideMenuVC.view.frame = CGRect(x: self.view.frame.width * 0.4, y: 0, width: self.view.frame.width * 0.6, height: self.view.frame.height)
+        }, completion: nil)
+        
+        self.transparentButton = UIButton(frame: CGRect(x: 0, y: 0, width: self.view.frame.width * 0.4, height: self.view.frame.height))
+        transparentButton?.addTarget(self, action: #selector(outsideMenuTapped), for: .touchUpInside)
+        self.view.addSubview(transparentButton!)
+        isMenuOpen = true
+    }
+
+    
+    @objc func outsideMenuTapped() {
+        // Trigger menu closing
+        closeMenu()
+    }
+
+    @objc func closeMenu() {
+        // get reference to slideMenuVC
+      /*  guard let slideMenuVC = children.last as? SlideMenuViewController else {
+            return
+        }
+
+        // remove tap gesture and the transparent button
+        slideMenuVC.view.removeGestureRecognizer(tapGesture!)
+        */
+       self.transparentButton?.removeFromSuperview()
+        
+        handleTapGesture(nil)
+        
+        isMenuOpen = false
+        
+        setupGestureRecognizers()  //Reinitialize the gestures after closing the menu
 
 
     }

@@ -15,6 +15,7 @@
 		DA5519F42A2A8FD0005509B7 /* ScanningNewItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA5519F32A2A8FD0005509B7 /* ScanningNewItem.swift */; };
 		DA5519F62A2A933D005509B7 /* ScannedItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA5519F52A2A933D005509B7 /* ScannedItem.swift */; };
 		DA5519F82A2A9F75005509B7 /* AddingNewItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA5519F72A2A9F75005509B7 /* AddingNewItem.swift */; };
+		DA6983C62A711D2B008D554B /* SlideMenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA6983C52A711D2B008D554B /* SlideMenuViewController.swift */; };
 		DA761BC22A264ABB00026F5B /* ScanningViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA761BC12A264ABB00026F5B /* ScanningViewController.swift */; };
 		DAB809B72A24EEE600E10E4C /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = DAB809B62A24EEE600E10E4C /* GoogleService-Info.plist */; };
 		DAB87D102A6A8122002099FA /* ItemDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAB87D0F2A6A8122002099FA /* ItemDetailViewController.swift */; };
@@ -34,6 +35,7 @@
 		DA5519F32A2A8FD0005509B7 /* ScanningNewItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanningNewItem.swift; sourceTree = "<group>"; };
 		DA5519F52A2A933D005509B7 /* ScannedItem.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScannedItem.swift; sourceTree = "<group>"; };
 		DA5519F72A2A9F75005509B7 /* AddingNewItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddingNewItem.swift; sourceTree = "<group>"; };
+		DA6983C52A711D2B008D554B /* SlideMenuViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlideMenuViewController.swift; sourceTree = "<group>"; };
 		DA761BC12A264ABB00026F5B /* ScanningViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanningViewController.swift; sourceTree = "<group>"; };
 		DAB809B62A24EEE600E10E4C /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../../Downloads/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		DAB87D0F2A6A8122002099FA /* ItemDetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemDetailViewController.swift; sourceTree = "<group>"; };
@@ -83,6 +85,7 @@
 				DAC7D18E2A23AEED006056FD /* AppDelegate.swift */,
 				DAC7D1902A23AEED006056FD /* SceneDelegate.swift */,
 				DAC7D1922A23AEED006056FD /* ViewController.swift */,
+				DA6983C52A711D2B008D554B /* SlideMenuViewController.swift */,
 				DA761BC12A264ABB00026F5B /* ScanningViewController.swift */,
 				DA5519F52A2A933D005509B7 /* ScannedItem.swift */,
 				DA5519F32A2A8FD0005509B7 /* ScanningNewItem.swift */,
@@ -181,6 +184,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DAC7D1932A23AEED006056FD /* ViewController.swift in Sources */,
+				DA6983C62A711D2B008D554B /* SlideMenuViewController.swift in Sources */,
 				DAC308402A658B3C0086FC1E /* ScannedItemModel.xcdatamodeld in Sources */,
 				DAB87D102A6A8122002099FA /* ItemDetailViewController.swift in Sources */,
 				DA5519F62A2A933D005509B7 /* ScannedItem.swift in Sources */,
