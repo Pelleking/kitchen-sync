@@ -11,6 +11,11 @@ import UIKit
 
 class SlideMenuViewController: UIViewController  {
     
+    @IBAction func XBUtton(_ sender: Any) {
+        
+        parent?.performSelector(onMainThread: #selector(ViewController.closeMenu), with: nil, waitUntilDone: false)
+        
+    }
     
     @IBAction func menuButtonStats(_ sender: Any) {
         parent?.performSelector(onMainThread: #selector(ViewController.closeMenu), with: nil, waitUntilDone: false)

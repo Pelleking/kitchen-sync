@@ -85,9 +85,10 @@ class ViewController: UIViewController, ScanningViewControllerDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupFetchedResultsController()
-
+        
         tableView.dataSource = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        self.tableView.backgroundColor = .clear
 
 
         //lisening for change in the core data
@@ -156,6 +157,11 @@ class ViewController: UIViewController, ScanningViewControllerDelegate {
             closeMenu()
         }
     }
+    
+    @IBAction func MenuOpenButton(_ sender: Any) {
+        openMenu()
+    }
+    
 
     @objc func handleTapGesture(_ recognizer: UITapGestureRecognizer?) {
         recognizer?.cancelsTouchesInView = false
@@ -330,6 +336,8 @@ extension ViewController: UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         let item = fetchedResultsController.object(at: indexPath)
         cell.textLabel?.text = item.name
+        let customColor = UIColor(hexString: "#747391")
+        cell.backgroundColor = customColor
         return cell
     }
 
@@ -470,6 +478,30 @@ extension ViewController: UITableViewDataSource {
         }
     }
 
+extension UIColor {
+    convenience init(hexString: String) {
+        let hexString: String = hexString.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+        let scanner = Scanner(string: hexString)
+        
+        if (hexString.hasPrefix("#")) {
+            scanner.scanLocation = 1
+        }
+        
+        var color: UInt32 = 0
+        scanner.scanHexInt32(&color)
+        
+        let mask = 0x000000FF
+        let r = Int(color >> 16) & mask
+        let g = Int(color >> 8) & mask
+        let b = Int(color) & mask
+        
+        let red   = CGFloat(r) / 255.0
+        let green = CGFloat(g) / 255.0
+        let blue  = CGFloat(b) / 255.0
+        
+        self.init(red:red, green:green, blue:blue, alpha:1)
+    }
+}
 
 
 

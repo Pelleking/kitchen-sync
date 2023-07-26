@@ -20,6 +20,8 @@ class ItemsViewController: UIViewController, UITableViewDataSource, UITableViewD
         print("ItemsViewController loaded")
         tableView.dataSource = self
         tableView.delegate = self
+        self.tableView.backgroundColor = .clear
+
         setupFetchedResultsController()
         fetchData()
     }
