@@ -75,10 +75,16 @@ class AddingNewItem: UIViewController, UITextFieldDelegate {
             return
         }
         
+        //get current date
+        let currentDate = Date()
+        
         // Get the selected date from datepickerbestbefore and format it as a string
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
         let bestBeforeDateString = dateFormatter.string(from: datepickerbestbefore.date)
+        
+        //Get the current date and set to scandate
+        let scanDateString = dateFormatter.string(from: currentDate)
 
         
         // Get the selected row of the UIPickerView
@@ -98,6 +104,7 @@ class AddingNewItem: UIViewController, UITextFieldDelegate {
             "name": itemName,
             "best-before": bestBeforeDateString,
             "category": category,
+            "scandate": scanDateString,
             // Add more to the database if I need
         ])
         

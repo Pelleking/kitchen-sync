@@ -61,6 +61,8 @@ class ItemsViewController: UIViewController, UITableViewDataSource, UITableViewD
         let cell = tableView.dequeueReusableCell(withIdentifier: "itemCell", for: indexPath)
         let item = fetchedResultsController?.object(at: indexPath)
         cell.textLabel?.text = item?.name
+        let customColor = UIColor(hexString: "#747391")
+        cell.backgroundColor = customColor
         return cell
     }
 

@@ -347,25 +347,22 @@ extension ViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            // Get the scanId of the section where deletion is happening
-            guard let scanId = scanID, var itemArr = scannedItems[scanId] else { return }
             
-            // Check if array has enough items to avoid the 'Index out of range' error
-            guard indexPath.row < itemArr.count else { return }
+            let item = fetchedResultsController.object(at: indexPath)
+            scanID = item.value(forKey: "id") as? String
+            print("scanID: \(String(describing: scanID))")
             
-            // Get the item to remove
-            let itemToRemove = itemArr[indexPath.row]
-            
-            // Get the id of the item to remove
-            let itemIdToRemove = itemToRemove.id
-            
-            // Remove the item from the array
-            itemArr.remove(at: indexPath.row)
-            scannedItems[scanId] = itemArr
-            
-            // If the array is empty, remove the scanId from scannedItems
-            if itemArr.isEmpty {
-                scannedItems.removeValue(forKey: scanId)
+            for (scanIdInDict, array) in scannedItems {
+                // Obtain the index of the item with matching scanId in the array
+                if let index = array.firstIndex(where: { element in element.id == scanID }) {
+                    // Remove the item from the array
+                    scannedItems[scanIdInDict]?.remove(at: index)
+                    
+                    // If the array is empty, remove the scanId from scannedItems
+                    if scannedItems[scanIdInDict]?.isEmpty == true {
+                        scannedItems.removeValue(forKey: scanIdInDict)
+                    }
+                }
             }
             
             let appDelegate = UIApplication.shared.delegate as! AppDelegate
@@ -373,18 +370,18 @@ extension ViewController: UITableViewDataSource {
             
             // Fetch the NSManagedObject to be deleted
             let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "ScannedItemEntity")
-            fetchRequest.predicate = NSPredicate(format: "id == %@", itemIdToRemove)  // Use itemIdToRemove here
+            fetchRequest.predicate = NSPredicate(format: "id == %@", scanID!)
             
             do {
                 let fetchResult = try context.fetch(fetchRequest)
                 if let objectToDelete = fetchResult.first as? NSManagedObject {
                     context.delete(objectToDelete)
                     do {
-                        // Save the changes to the context
-                        try context.save()
-                        print("deleted from coredata")
+                      // Save the changes to the context
+                      try context.save()
+                      print("deleted from coredata")
                     } catch {
-                        print("Failed saving after deletion: \(error)")
+                      print("Failed saving after deletion: \(error)")
                     }
                 }
             } catch {

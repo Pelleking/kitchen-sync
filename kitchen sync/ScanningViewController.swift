@@ -108,7 +108,8 @@ class ScanningViewController: UIViewController, AVCaptureMetadataOutputObjectsDe
                 guard let value = snapshot.value as? [String: Any],
                       let name = value["name"] as? String,
                       let category = value["category"] as? String,
-                      let bestbefore = value["best-before"] as? String else {
+                      let bestbefore = value["best-before"] as? String,
+                      let scandate = value["scandate"] as? String else {
                     
                     print("Product not found")
                  
@@ -126,17 +127,46 @@ class ScanningViewController: UIViewController, AVCaptureMetadataOutputObjectsDe
                     
                     return
                 }
-                
+                    
                 print("Product name - \(name) - bestbefore \(bestbefore) - category \(category)")
                 
-                let scannedItem = ScannedItem(id: barcodeValue, name: name, category: category, bestbefore: bestbefore)
+                    
+                //Calculation for the bestbefore date
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "yyyy-MM-dd"
+
+                //Convert `bestbefore` and `scandate` values to `Date` objects.
+                let originalBestBeforeDate = dateFormatter.date(from: bestbefore)
+                let scanDate = dateFormatter.date(from: scandate)
+
+                guard originalBestBeforeDate != nil, scanDate != nil else {
+                    print("Date conversion error")
+                    return
+                }
+
+                let calendar = Calendar.current
+
+                //Calculate the difference between these dates.
+                let dateDifferenceComponents = calendar.dateComponents([.day], from: scanDate!, to: originalBestBeforeDate!)
+                let dateDifferenceInDays = dateDifferenceComponents.day!
+
+                //Create the new `bestbefore` date.
+                let now = Date()
+                let newBestBeforeDate = calendar.date(byAdding: .day, value: dateDifferenceInDays, to: now)
+
+                let newBestBeforeDateString = dateFormatter.string(from: newBestBeforeDate!)
+
+                print("Product name - \(name) - newbestbefore \(newBestBeforeDateString) - category \(category)")
+
+                //set the scanned items
+                let scannedItem = ScannedItem(id: barcodeValue, name: name, category: category, bestbefore: newBestBeforeDateString)
                 self.delegate?.didScanItem(scannedItem)
 
                 
                 // Set scanningEnabled to false to prevent rapid scanning
                 //self.scanningEnabled = false
                 self.captureSession.stopRunning() // Stop the camera feed
-          //  Use the DispatchQueue asyncAfter method to enable scanning after a delay
+                //  Use the DispatchQueue asyncAfter method to enable scanning after a delay
                 DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
                    self.scanningEnabled = true
                 }
