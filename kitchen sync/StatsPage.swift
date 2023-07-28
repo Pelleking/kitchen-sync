@@ -11,9 +11,12 @@ class StatsPage: UIViewController, UICollectionViewDataSource, UICollectionViewD
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     @IBOutlet weak var itemCountLabelui: UILabel!
     @IBOutlet weak var collectionView: UICollectionView!
+    @IBOutlet weak var itemsTableView: UITableView!
+
 
     var categories: [String: [ScannedItemEntity]] = [:]
     var categoryNames: [String] = []
+    var groupedItems: [[ScannedItemEntity]] = []
     var fetchedResultsController: NSFetchedResultsController<ScannedItemEntity>!
     
     
@@ -87,6 +90,58 @@ class StatsPage: UIViewController, UICollectionViewDataSource, UICollectionViewD
             }
         }
     }
+    
+    //group items by name and date
+    func groupItemsByNameAndDate() {
+        guard let items = fetchedResultsController.fetchedObjects else {
+            return
+        }
+        
+        let groupedItemsDictionary = Dictionary(grouping: items) { (item) -> String in
+            return "\(item.name):\(item.bestbefore)"
+        }
+        
+        self.groupedItems = Array(groupedItemsDictionary.values)
+        self.groupedItems.sort { (group1, group2) -> Bool in
+            guard let date1 = group1.first?.bestbefore,
+                  let date2 = group2.first?.bestbefore else {
+                return false
+            }
+            return date1 < date2
+        }
+    }
+
+    func getSoonestsGroupedItems() -> [[ScannedItemEntity]] {
+       var soonestDate: Date?
+
+       // Find the soonest date.
+       for itemGroup in self.groupedItems {
+           if let date = itemGroup.first?.bestbefore {
+               if soonestDate == nil {
+                   soonestDate = date
+               } else if date < soonestDate! {
+                   soonestDate = date
+               }
+           }
+       }
+
+       guard let soonest = soonestDate else {
+          return []
+       }
+
+       // Filter the groups by the soonest date.
+       return self.groupedItems.filter { itemGroup in
+           guard let dateInGroup = itemGroup.first?.bestbefore else {
+               return false
+           }
+
+           return dateInGroup == soonest
+       }
+    }
+
+
+
+
   
     //update label and category
     func updateLabel() {
@@ -107,11 +162,21 @@ class StatsPage: UIViewController, UICollectionViewDataSource, UICollectionViewD
         collectionView.delegate = self
         collectionView.register(CustomCollectionViewCell.self, forCellWithReuseIdentifier: "categoryCell")
         groupItemsByCategory()
+        
+        groupItemsByNameAndDate()
+        itemsTableView.reloadData()
+
+        itemsTableView.dataSource = self
+        itemsTableView.delegate = self
+        itemsTableView.register(UITableViewCell.self, forCellReuseIdentifier: "itemCell")
+        self.itemsTableView.backgroundColor = .clear
+
+
     }
     
     
     // MARK: - CollectionView Data Source Methods
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return categoryNames.count
     }
 
@@ -132,7 +197,14 @@ class StatsPage: UIViewController, UICollectionViewDataSource, UICollectionViewD
     
     // MARK: - Navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "showItems" {
+        if segue.identifier == "showItemDetails" {
+            let destinationVC = segue.destination as! BestBeforeViewController
+            if let indexPath = sender as? IndexPath {
+                let selectedItem = groupedItems[indexPath.row].first // Assume that groupedItems are populated and the first item exists
+                destinationVC.item = selectedItem
+            }
+
+        } else if segue.identifier == "showItems" {
             let destinationVC = segue.destination as! ItemsViewController
             if let indexPath = collectionView.indexPathsForSelectedItems?.first {
                 let selectedCategory = categoryNames[indexPath.row]
@@ -141,6 +213,8 @@ class StatsPage: UIViewController, UICollectionViewDataSource, UICollectionViewD
             }
         }
     }
+
+
 
 
     private func prepareSegue(for segue: UIStoryboardSegue) {
@@ -165,6 +239,8 @@ extension StatsPage {
                 DispatchQueue.main.async {
                     self.updateLabel()
                     self.collectionView.reloadData()
+                    self.groupItemsByNameAndDate()
+                    self.itemsTableView.reloadData()
                 }
             default:
                 break
@@ -174,6 +250,46 @@ extension StatsPage {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
        // React to completed changes
     }
+    
+    //date formater
+    func formatDateToString(date: Date) -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        return dateFormatter.string(from: date)
+    }
+
+    
+}
+
+extension StatsPage: UITableViewDelegate, UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return groupedItems.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "itemCell", for: indexPath)
+        
+        let group = groupedItems[indexPath.row]
+        
+        if let firstItem = group.first, // safely unwrapping the first item in group
+           let itemName = firstItem.name // safely unwrapping name property
+        {
+            // Safe to use unwrapped itemName and firstItem.bestBefore here
+            let bestBeforeDateString = formatDateToString(date: firstItem.bestbefore!)
+            let itemCount = group.count
+            
+            cell.textLabel?.text = "\(itemName) - \(bestBeforeDateString) (\(itemCount) items)"
+        }
+        let customColor = UIColor(hexString: "#747391")
+        cell.backgroundColor = customColor
+        return cell
+    }
+
+  
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+       performSegue(withIdentifier: "showItemDetails", sender: indexPath) //use the correct segue identifier
+    }
+
 }
 
 
