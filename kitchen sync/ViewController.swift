@@ -56,9 +56,11 @@ class ViewController: UIViewController, ScanningViewControllerDelegate {
     
     func setupFetchedResultsController() {
         let fetchRequest: NSFetchRequest<ScannedItemEntity> = ScannedItemEntity.fetchRequest()
-        let sortDescriptor = NSSortDescriptor(key: "name", ascending: false)
+        let sortDescriptor = NSSortDescriptor(key: "scandate", ascending: false)
         fetchRequest.sortDescriptors = [sortDescriptor]
-        
+        fetchRequest.fetchLimit = 0
+
+
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
         let context = appDelegate.persistentContainer.viewContext
         
@@ -74,7 +76,7 @@ class ViewController: UIViewController, ScanningViewControllerDelegate {
 
     var scannedItems: [String: [MyScannedItem]] = [:]
     var scanID: String?
-    
+    var shouldDisplayPlaceholder = false
     
     @IBOutlet weak var tableView: UITableView!
     
@@ -105,8 +107,9 @@ class ViewController: UIViewController, ScanningViewControllerDelegate {
             let appDelegate = UIApplication.shared.delegate as! AppDelegate
             let context = appDelegate.persistentContainer.viewContext
             let fetchRequest: NSFetchRequest<ScannedItemEntity> = ScannedItemEntity.fetchRequest()
-            let sortDescriptor = NSSortDescriptor(key: #keyPath(ScannedItemEntity.name), ascending: true)
+            let sortDescriptor = NSSortDescriptor(key: #keyPath(ScannedItemEntity.scandate), ascending: false)
             fetchRequest.sortDescriptors = [sortDescriptor]
+            fetchRequest.fetchLimit = 0
             
             fetchedResultsController = NSFetchedResultsController(
                 fetchRequest: fetchRequest,
@@ -123,9 +126,20 @@ class ViewController: UIViewController, ScanningViewControllerDelegate {
                 print("Could not fetch. \(error), \(error.userInfo)")
             }
         }
-
+        
+        updateplaceholder()
 
     }
+    
+    //check placeholder
+    func updateplaceholder() {
+        if fetchedResultsController.fetchedObjects?.isEmpty == true {
+            shouldDisplayPlaceholder = true
+        } else {
+            shouldDisplayPlaceholder = false
+        }
+    }
+
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
@@ -244,6 +258,13 @@ class ViewController: UIViewController, ScanningViewControllerDelegate {
     }
 
     func didScanItem(_ item: ScannedItem) {
+
+        // Set the flag to false to indicate that the placeholder cell should not be displayed
+        shouldDisplayPlaceholder = false
+
+        // Reload the table view data
+        tableView.reloadData()
+        
         // Generate a unique ID for the scanned item
         let id = UUID().uuidString
         
@@ -299,9 +320,8 @@ class ViewController: UIViewController, ScanningViewControllerDelegate {
          
             
             // Save the updated scannedItems dictionary to local storage
-          //  saveLocallyStoredItems(scannedItems)
+            //  saveLocallyStoredItems(scannedItems)
             
-            tableView.reloadData()
             dismiss(animated: true, completion: nil)
         } else {
             print("Error: Unable to load image or create white square image")
@@ -326,24 +346,74 @@ class ViewController: UIViewController, ScanningViewControllerDelegate {
 extension ViewController: UITableViewDataSource {
     
     
+    // func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    //     guard let sections = fetchedResultsController.sections else { return 0 }
+    //     let sectionInfo = sections[section]
+    //     //return sectionInfo.numberOfObjects
+    //     return min(fetchedResultsController.fetchedObjects?.count ?? 0, 5)
+    // }
+    /*
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         guard let sections = fetchedResultsController.sections else { return 0 }
         let sectionInfo = sections[section]
-        return sectionInfo.numberOfObjects
+        if sectionInfo.numberOfObjects == 0 {
+            return 0
+        } else {
+            return min(fetchedResultsController.fetchedObjects?.count ?? 0, 5)
+        }
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        let item = fetchedResultsController.object(at: indexPath)
-        cell.textLabel?.text = item.name
+        let item = fetchedResultsController.fetchedObjects?[indexPath.row]
+        cell.textLabel?.text = item?.name
         let customColor = UIColor(hexString: "#747391")
         cell.backgroundColor = customColor
         return cell
     }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        let count = fetchedResultsController.fetchedObjects?.count ?? 0
+        return count == 0 ? 1 : count
+    }
 
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let count = fetchedResultsController.fetchedObjects?.count ?? 0
+        if count == 0 {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "PlaceholderCell", for: indexPath)
+            cell.textLabel?.text = "No Scanned Items"
+            return cell
+        } else {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+            let item = fetchedResultsController.fetchedObjects?[indexPath.row]
+            cell.textLabel?.text = item?.name
+            let customColor = UIColor(hexString: "#747391")
+            cell.backgroundColor = customColor
+            return cell
+        }
+    }
+
+    */
     
-    
-    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        let count = fetchedResultsController.fetchedObjects?.count ?? 0
+        return shouldDisplayPlaceholder ? 1 : count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        if shouldDisplayPlaceholder {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "PlaceholderCell", for: indexPath)
+            cell.textLabel?.text = "No Scanned Items"
+            return cell
+        } else {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+            let item = fetchedResultsController.fetchedObjects?[indexPath.row]
+            cell.textLabel?.text = item?.name
+            let customColor = UIColor(hexString: "#747391")
+            cell.backgroundColor = customColor
+            return cell
+        }
+    }
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
@@ -379,6 +449,7 @@ extension ViewController: UITableViewDataSource {
                     do {
                       // Save the changes to the context
                       try context.save()
+                      tableView.reloadData()
                       print("deleted from coredata")
                     } catch {
                       print("Failed saving after deletion: \(error)")
@@ -433,47 +504,72 @@ extension ViewController: UITableViewDataSource {
 
         
         // Delete the row from the table view
-        //tableView.deleteRows(at: [indexPath], with: .fade)
+        var indexPathToDelete: IndexPath?
+
+        for (section, (scanIdInDict, array)) in scannedItems.enumerated() {
+            if scanIdInDict == scanId {
+                for (row, _) in array.enumerated() {
+                    indexPathToDelete = IndexPath(row: row, section: section)
+                    break
+                }
+            }
+        }
+
+        if let indexPath = indexPathToDelete {
+            tableView.deleteRows(at: [indexPath], with: .fade)
+            tableView.reloadData()
+
+        }
+            
+
         
         // Save the updated scannedItems array to local storage
         //saveLocallyStoredItems(scannedItems)
         
     }
 }
-    extension ViewController: NSFetchedResultsControllerDelegate {
 
-        func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-            tableView.beginUpdates()
-        }
-        
-        func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-            tableView.endUpdates()
-        }
-        
-        func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>,
-                                 didChange anObject: Any,
-                                 at indexPath: IndexPath?,
-                                 for type: NSFetchedResultsChangeType,
-                                 newIndexPath: IndexPath?) {
+extension ViewController: NSFetchedResultsControllerDelegate {
+    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        tableView.beginUpdates()
+    }
 
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+        let count = fetchedResultsController.fetchedObjects?.count ?? 0
+        if count == 0 {
+            updateplaceholder()
+        } else {
             switch type {
             case .insert:
-                guard let newIndexPath = newIndexPath else { return }
-                tableView.insertRows(at: [newIndexPath], with: .automatic)
+                if let newIndexPath = newIndexPath {
+                    tableView.insertRows(at: [newIndexPath], with: .automatic)
+                }
             case .delete:
-                guard let indexPath = indexPath else { return }
-                tableView.deleteRows(at: [indexPath], with: .automatic)
+                if let indexPath = indexPath {
+                    tableView.deleteRows(at: [indexPath], with: .automatic)
+                }
             case .update:
-                guard let indexPath = indexPath else { return }
-                tableView.reloadRows(at: [indexPath], with: .automatic)
+                if let indexPath = indexPath {
+                    tableView.reloadRows(at: [indexPath], with: .automatic)
+                }
             case .move:
-                guard let indexPath = indexPath, let newIndexPath = newIndexPath else { return }
-                tableView.moveRow(at: indexPath, to: newIndexPath)
+                if let indexPath = indexPath {
+                    tableView.deleteRows(at: [indexPath], with: .automatic)
+                }
+                if let newIndexPath = newIndexPath {
+                    tableView.insertRows(at: [newIndexPath], with: .automatic)
+                }
             @unknown default:
-              return
+                fatalError("Unknown NSFetchedResultsChangeType")
             }
         }
     }
+
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        tableView.endUpdates()
+        tableView.reloadData()
+    }
+}
 
 extension UIColor {
     convenience init(hexString: String) {

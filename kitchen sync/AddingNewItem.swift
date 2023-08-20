@@ -7,6 +7,7 @@
 
 import UIKit    
 import Firebase
+import CoreData
 
 class AddingNewItem: UIViewController, UITextFieldDelegate {
 
@@ -15,7 +16,9 @@ class AddingNewItem: UIViewController, UITextFieldDelegate {
     @IBOutlet weak var Itemiddisplay: UILabel!
     @IBOutlet weak var UICategorypicker: UIPickerView!
     
-    let data = ["Category", "tech", "grocceris", "cleaning"]
+    var data: [String] = []
+    var context: NSManagedObjectContext!
+
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -25,6 +28,20 @@ class AddingNewItem: UIViewController, UITextFieldDelegate {
         
         // Set the default value of the UIPickerView
         UICategorypicker.selectRow(0, inComponent: 0, animated: false)
+        
+        //CoreData setup
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        context = appDelegate.persistentContainer.viewContext
+        
+        let request = NSFetchRequest<NSFetchRequestResult>(entityName: "CategoryDatan")
+        do {
+            let result = try context.fetch(request) as? [CategoryDatan]
+            data = result?.map { $0.name! } ?? []
+        } catch {
+            // Handle any errors
+            print("Failed to fetch categories: \(error)")
+        }
+        
     }
    
     //dismisses the keyboard
